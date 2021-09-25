@@ -15,6 +15,8 @@
 			at24: at24@57 {
 				compatible = "microchip,24c32", "atmel,24c32";
 				reg = <0x57>;
+				size = <4096>;
+				pagesize = <32>;
 				status = "okay";
 			};
 		};
