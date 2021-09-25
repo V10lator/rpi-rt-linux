@@ -1,0 +1,22 @@
+// Definitions for at24c32
+/dts-v1/;
+/plugin/;
+
+/{
+	compatible = "brcm,bcm2835";
+
+	fragment@0 {
+		target = <&i2c_arm>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+
+			at24: at24@57 {
+				compatible = "microchip,24c32", "atmel,24c32";
+				reg = <0x57>;
+				status = "okay";
+			};
+		};
+	};
+};
