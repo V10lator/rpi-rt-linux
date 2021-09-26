@@ -1472,9 +1472,9 @@ enum {
 
 static int ds3231_clk_sqw_rates[] = {
 	1,
-	1024,
-	4096,
-	8192,
+//	1024,
+//	4096,
+//	8192,
 };
 
 static int ds1337_write_control(struct ds1307 *ds1307, u8 mask, u8 value)
@@ -1493,31 +1493,31 @@ static int ds1337_write_control(struct ds1307 *ds1307, u8 mask, u8 value)
 static unsigned long ds3231_clk_sqw_recalc_rate(struct clk_hw *hw,
 						unsigned long parent_rate)
 {
-	struct ds1307 *ds1307 = clk_sqw_to_ds1307(hw);
-	int control, ret;
-	int rate_sel = 0;
-
-	ret = regmap_read(ds1307->regmap, DS1337_REG_CONTROL, &control);
-	if (ret)
-		return ret;
-	if (control & DS1337_BIT_RS1)
-		rate_sel += 1;
-	if (control & DS1337_BIT_RS2)
-		rate_sel += 2;
-
-	return ds3231_clk_sqw_rates[rate_sel];
+//	struct ds1307 *ds1307 = clk_sqw_to_ds1307(hw);
+//	int control, ret;
+//	int rate_sel = 0;
+//
+//	ret = regmap_read(ds1307->regmap, DS1337_REG_CONTROL, &control);
+//	if (ret)
+//		return ret;
+//	if (control & DS1337_BIT_RS1)
+//		rate_sel += 1;
+//	if (control & DS1337_BIT_RS2)
+//		rate_sel += 2;
+//
+	return 1;
 }
 
 static long ds3231_clk_sqw_round_rate(struct clk_hw *hw, unsigned long rate,
 				      unsigned long *prate)
 {
-	int i;
-
-	for (i = ARRAY_SIZE(ds3231_clk_sqw_rates) - 1; i >= 0; i--) {
-		if (ds3231_clk_sqw_rates[i] <= rate)
-			return ds3231_clk_sqw_rates[i];
-	}
-
+//	int i;
+//
+//	for (i = ARRAY_SIZE(ds3231_clk_sqw_rates) - 1; i >= 0; i--) {
+//		if (ds3231_clk_sqw_rates[i] <= rate)
+//			return ds3231_clk_sqw_rates[i];
+//	}
+//
 	return 0;
 }
 
@@ -1526,21 +1526,21 @@ static int ds3231_clk_sqw_set_rate(struct clk_hw *hw, unsigned long rate,
 {
 	struct ds1307 *ds1307 = clk_sqw_to_ds1307(hw);
 	int control = 0;
-	int rate_sel;
-
-	for (rate_sel = 0; rate_sel < ARRAY_SIZE(ds3231_clk_sqw_rates);
-			rate_sel++) {
-		if (ds3231_clk_sqw_rates[rate_sel] == rate)
-			break;
-	}
-
-	if (rate_sel == ARRAY_SIZE(ds3231_clk_sqw_rates))
-		return -EINVAL;
-
-	if (rate_sel & 1)
-		control |= DS1337_BIT_RS1;
-	if (rate_sel & 2)
-		control |= DS1337_BIT_RS2;
+//	int rate_sel = 0;
+//
+//	for (rate_sel = 0; rate_sel < ARRAY_SIZE(ds3231_clk_sqw_rates);
+//			rate_sel++) {
+//		if (ds3231_clk_sqw_rates[rate_sel] == rate)
+//			break;
+//	}
+//
+//	if (rate_sel == ARRAY_SIZE(ds3231_clk_sqw_rates))
+//		return -EINVAL;
+//
+//	if (rate_sel & 1)
+//		control |= DS1337_BIT_RS1;
+//	if (rate_sel & 2)
+//		control |= DS1337_BIT_RS2;
 
 	return ds1337_write_control(ds1307, DS1337_BIT_RS1 | DS1337_BIT_RS2,
 				control);
