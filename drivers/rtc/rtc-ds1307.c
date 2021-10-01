@@ -414,117 +414,117 @@ static int ds1307_set_time(struct device *dev, struct rtc_time *t)
 
 static int ds1337_read_alarm(struct device *dev, struct rtc_wkalrm *t)
 {
-//	struct ds1307		*ds1307 = dev_get_drvdata(dev);
-//	int			ret;
-//	u8			regs[9];
-//
-//	if (!test_bit(HAS_ALARM, &ds1307->flags))
+	struct ds1307		*ds1307 = dev_get_drvdata(dev);
+	int			ret;
+	u8			regs[9];
+
+	if (!test_bit(HAS_ALARM, &ds1307->flags))
 		return -EINVAL;
-//
-//	/* read all ALARM1, ALARM2, and status registers at once */
-//	ret = regmap_bulk_read(ds1307->regmap, DS1339_REG_ALARM1_SECS,
-//			       regs, sizeof(regs));
-//	if (ret) {
-//		dev_err(dev, "%s error %d\n", "alarm read", ret);
-//		return ret;
-//	}
-//
-//	dev_dbg(dev, "%s: %4ph, %3ph, %2ph\n", "alarm read",
-//		&regs[0], &regs[4], &regs[7]);
-//
-//	/*
-//	 * report alarm time (ALARM1); assume 24 hour and day-of-month modes,
-//	 * and that all four fields are checked matches
-//	 */
-//	t->time.tm_sec = bcd2bin(regs[0] & 0x7f);
-//	t->time.tm_min = bcd2bin(regs[1] & 0x7f);
-//	t->time.tm_hour = bcd2bin(regs[2] & 0x3f);
-//	t->time.tm_mday = bcd2bin(regs[3] & 0x3f);
-//
-//	/* ... and status */
-//	t->enabled = !!(regs[7] & DS1337_BIT_A1IE);
-//	t->pending = !!(regs[8] & DS1337_BIT_A1I);
-//
-//	dev_dbg(dev, "%s secs=%d, mins=%d, "
-//		"hours=%d, mday=%d, enabled=%d, pending=%d\n",
-//		"alarm read", t->time.tm_sec, t->time.tm_min,
-//		t->time.tm_hour, t->time.tm_mday,
-//		t->enabled, t->pending);
-//
-//	return 0;
+
+	/* read all ALARM1, ALARM2, and status registers at once */
+	ret = regmap_bulk_read(ds1307->regmap, DS1339_REG_ALARM1_SECS,
+			       regs, sizeof(regs));
+	if (ret) {
+		dev_err(dev, "%s error %d\n", "alarm read", ret);
+		return ret;
+	}
+
+	dev_dbg(dev, "%s: %4ph, %3ph, %2ph\n", "alarm read",
+		&regs[0], &regs[4], &regs[7]);
+
+	/*
+	 * report alarm time (ALARM1); assume 24 hour and day-of-month modes,
+	 * and that all four fields are checked matches
+	 */
+	t->time.tm_sec = bcd2bin(regs[0] & 0x7f);
+	t->time.tm_min = bcd2bin(regs[1] & 0x7f);
+	t->time.tm_hour = bcd2bin(regs[2] & 0x3f);
+	t->time.tm_mday = bcd2bin(regs[3] & 0x3f);
+
+	/* ... and status */
+	t->enabled = !!(regs[7] & DS1337_BIT_A1IE);
+	t->pending = !!(regs[8] & DS1337_BIT_A1I);
+
+	dev_dbg(dev, "%s secs=%d, mins=%d, "
+		"hours=%d, mday=%d, enabled=%d, pending=%d\n",
+		"alarm read", t->time.tm_sec, t->time.tm_min,
+		t->time.tm_hour, t->time.tm_mday,
+		t->enabled, t->pending);
+
+	return 0;
 }
 
 static int ds1337_set_alarm(struct device *dev, struct rtc_wkalrm *t)
 {
-//	struct ds1307		*ds1307 = dev_get_drvdata(dev);
-//	unsigned char		regs[9];
-//	u8			control, status;
-//	int			ret;
-//
-//	if (!test_bit(HAS_ALARM, &ds1307->flags))
+	struct ds1307		*ds1307 = dev_get_drvdata(dev);
+	unsigned char		regs[9];
+	u8			control, status;
+	int			ret;
+
+	if (!test_bit(HAS_ALARM, &ds1307->flags))
 		return -EINVAL;
-//
-//	dev_dbg(dev, "%s secs=%d, mins=%d, "
-//		"hours=%d, mday=%d, enabled=%d, pending=%d\n",
-//		"alarm set", t->time.tm_sec, t->time.tm_min,
-//		t->time.tm_hour, t->time.tm_mday,
-//		t->enabled, t->pending);
-//
-//	/* read current status of both alarms and the chip */
-//	ret = regmap_bulk_read(ds1307->regmap, DS1339_REG_ALARM1_SECS, regs,
-//			       sizeof(regs));
-//	if (ret) {
-//		dev_err(dev, "%s error %d\n", "alarm write", ret);
-//		return ret;
-//	}
-//	control = regs[7];
-//	status = regs[8];
-//
-//	dev_dbg(dev, "%s: %4ph, %3ph, %02x %02x\n", "alarm set (old status)",
-//		&regs[0], &regs[4], control, status);
-//
-//	/* set ALARM1, using 24 hour and day-of-month modes */
-//	regs[0] = bin2bcd(t->time.tm_sec);
-//	regs[1] = bin2bcd(t->time.tm_min);
-//	regs[2] = bin2bcd(t->time.tm_hour);
-//	regs[3] = bin2bcd(t->time.tm_mday);
-//
-//	/* set ALARM2 to non-garbage */
-//	regs[4] = 0;
-//	regs[5] = 0;
-//	regs[6] = 0;
-//
-//	/* disable alarms */
-//	regs[7] = control & ~(DS1337_BIT_A1IE | DS1337_BIT_A2IE);
-//	regs[8] = status & ~(DS1337_BIT_A1I | DS1337_BIT_A2I);
-//
-//	ret = regmap_bulk_write(ds1307->regmap, DS1339_REG_ALARM1_SECS, regs,
-//				sizeof(regs));
-//	if (ret) {
-//		dev_err(dev, "can't set alarm time\n");
-//		return ret;
-//	}
-//
-//	/* optionally enable ALARM1 */
-//	if (t->enabled) {
-//		dev_dbg(dev, "alarm IRQ armed\n");
-//		regs[7] |= DS1337_BIT_A1IE;	/* only ALARM1 is used */
-//		regmap_write(ds1307->regmap, DS1337_REG_CONTROL, regs[7]);
-//	}
-//
-//	return 0;
+
+	dev_dbg(dev, "%s secs=%d, mins=%d, "
+		"hours=%d, mday=%d, enabled=%d, pending=%d\n",
+		"alarm set", t->time.tm_sec, t->time.tm_min,
+		t->time.tm_hour, t->time.tm_mday,
+		t->enabled, t->pending);
+
+	/* read current status of both alarms and the chip */
+	ret = regmap_bulk_read(ds1307->regmap, DS1339_REG_ALARM1_SECS, regs,
+			       sizeof(regs));
+	if (ret) {
+		dev_err(dev, "%s error %d\n", "alarm write", ret);
+		return ret;
+	}
+	control = regs[7];
+	status = regs[8];
+
+	dev_dbg(dev, "%s: %4ph, %3ph, %02x %02x\n", "alarm set (old status)",
+		&regs[0], &regs[4], control, status);
+
+	/* set ALARM1, using 24 hour and day-of-month modes */
+	regs[0] = bin2bcd(t->time.tm_sec);
+	regs[1] = bin2bcd(t->time.tm_min);
+	regs[2] = bin2bcd(t->time.tm_hour);
+	regs[3] = bin2bcd(t->time.tm_mday);
+
+	/* set ALARM2 to non-garbage */
+	regs[4] = 0;
+	regs[5] = 0;
+	regs[6] = 0;
+
+	/* disable alarms */
+	regs[7] = control & ~(DS1337_BIT_A1IE | DS1337_BIT_A2IE);
+	regs[8] = status & ~(DS1337_BIT_A1I | DS1337_BIT_A2I);
+
+	ret = regmap_bulk_write(ds1307->regmap, DS1339_REG_ALARM1_SECS, regs,
+				sizeof(regs));
+	if (ret) {
+		dev_err(dev, "can't set alarm time\n");
+		return ret;
+	}
+
+	/* optionally enable ALARM1 */
+	if (t->enabled) {
+		dev_dbg(dev, "alarm IRQ armed\n");
+		regs[7] |= DS1337_BIT_A1IE;	/* only ALARM1 is used */
+		regmap_write(ds1307->regmap, DS1337_REG_CONTROL, regs[7]);
+	}
+
+	return 0;
 }
 
 static int ds1307_alarm_irq_enable(struct device *dev, unsigned int enabled)
 {
-//	struct ds1307		*ds1307 = dev_get_drvdata(dev);
-//
-//	if (!test_bit(HAS_ALARM, &ds1307->flags))
+	struct ds1307		*ds1307 = dev_get_drvdata(dev);
+
+	if (!test_bit(HAS_ALARM, &ds1307->flags))
 		return -ENOTTY;
-//
-//	return regmap_update_bits(ds1307->regmap, DS1337_REG_CONTROL,
-//				  DS1337_BIT_A1IE,
-//				  enabled ? DS1337_BIT_A1IE : 0);
+
+	return regmap_update_bits(ds1307->regmap, DS1337_REG_CONTROL,
+				  DS1337_BIT_A1IE,
+				  enabled ? DS1337_BIT_A1IE : 0);
 }
 
 static u8 do_trickle_setup_ds1339(struct ds1307 *ds1307, u32 ohms, bool diode)
@@ -596,112 +596,112 @@ out:
 
 static int rx8130_read_alarm(struct device *dev, struct rtc_wkalrm *t)
 {
-//	struct ds1307 *ds1307 = dev_get_drvdata(dev);
-//	u8 ald[3], ctl[3];
-//	int ret;
-//
-//	if (!test_bit(HAS_ALARM, &ds1307->flags))
+	struct ds1307 *ds1307 = dev_get_drvdata(dev);
+	u8 ald[3], ctl[3];
+	int ret;
+
+	if (!test_bit(HAS_ALARM, &ds1307->flags))
 		return -EINVAL;
-//
-//	/* Read alarm registers. */
-//	ret = regmap_bulk_read(ds1307->regmap, RX8130_REG_ALARM_MIN, ald,
-//			       sizeof(ald));
-//	if (ret < 0)
-//		return ret;
-//
-//	/* Read control registers. */
-//	ret = regmap_bulk_read(ds1307->regmap, RX8130_REG_EXTENSION, ctl,
-//			       sizeof(ctl));
-//	if (ret < 0)
-//		return ret;
-//
-//	t->enabled = !!(ctl[2] & RX8130_REG_CONTROL0_AIE);
-//	t->pending = !!(ctl[1] & RX8130_REG_FLAG_AF);
-//
-//	/* Report alarm 0 time assuming 24-hour and day-of-month modes. */
-//	t->time.tm_sec = -1;
-//	t->time.tm_min = bcd2bin(ald[0] & 0x7f);
-//	t->time.tm_hour = bcd2bin(ald[1] & 0x7f);
-//	t->time.tm_wday = -1;
-//	t->time.tm_mday = bcd2bin(ald[2] & 0x7f);
-//	t->time.tm_mon = -1;
-//	t->time.tm_year = -1;
-//	t->time.tm_yday = -1;
-//	t->time.tm_isdst = -1;
-//
-//	dev_dbg(dev, "%s, sec=%d min=%d hour=%d wday=%d mday=%d mon=%d enabled=%d\n",
-//		__func__, t->time.tm_sec, t->time.tm_min, t->time.tm_hour,
-//		t->time.tm_wday, t->time.tm_mday, t->time.tm_mon, t->enabled);
-//
-//	return 0;
+
+	/* Read alarm registers. */
+	ret = regmap_bulk_read(ds1307->regmap, RX8130_REG_ALARM_MIN, ald,
+			       sizeof(ald));
+	if (ret < 0)
+		return ret;
+
+	/* Read control registers. */
+	ret = regmap_bulk_read(ds1307->regmap, RX8130_REG_EXTENSION, ctl,
+			       sizeof(ctl));
+	if (ret < 0)
+		return ret;
+
+	t->enabled = !!(ctl[2] & RX8130_REG_CONTROL0_AIE);
+	t->pending = !!(ctl[1] & RX8130_REG_FLAG_AF);
+
+	/* Report alarm 0 time assuming 24-hour and day-of-month modes. */
+	t->time.tm_sec = -1;
+	t->time.tm_min = bcd2bin(ald[0] & 0x7f);
+	t->time.tm_hour = bcd2bin(ald[1] & 0x7f);
+	t->time.tm_wday = -1;
+	t->time.tm_mday = bcd2bin(ald[2] & 0x7f);
+	t->time.tm_mon = -1;
+	t->time.tm_year = -1;
+	t->time.tm_yday = -1;
+	t->time.tm_isdst = -1;
+
+	dev_dbg(dev, "%s, sec=%d min=%d hour=%d wday=%d mday=%d mon=%d enabled=%d\n",
+		__func__, t->time.tm_sec, t->time.tm_min, t->time.tm_hour,
+		t->time.tm_wday, t->time.tm_mday, t->time.tm_mon, t->enabled);
+
+	return 0;
 }
 
 static int rx8130_set_alarm(struct device *dev, struct rtc_wkalrm *t)
 {
-//	struct ds1307 *ds1307 = dev_get_drvdata(dev);
-//	u8 ald[3], ctl[3];
-//	int ret;
-//
-//	if (!test_bit(HAS_ALARM, &ds1307->flags))
+	struct ds1307 *ds1307 = dev_get_drvdata(dev);
+	u8 ald[3], ctl[3];
+	int ret;
+
+	if (!test_bit(HAS_ALARM, &ds1307->flags))
 		return -EINVAL;
-//
-//	dev_dbg(dev, "%s, sec=%d min=%d hour=%d wday=%d mday=%d mon=%d "
-//		"enabled=%d pending=%d\n", __func__,
-//		t->time.tm_sec, t->time.tm_min, t->time.tm_hour,
-//		t->time.tm_wday, t->time.tm_mday, t->time.tm_mon,
-//		t->enabled, t->pending);
-//
-//	/* Read control registers. */
-//	ret = regmap_bulk_read(ds1307->regmap, RX8130_REG_EXTENSION, ctl,
-//			       sizeof(ctl));
-//	if (ret < 0)
-//		return ret;
-//
-//	ctl[0] &= RX8130_REG_EXTENSION_WADA;
-//	ctl[1] &= ~RX8130_REG_FLAG_AF;
-//	ctl[2] &= ~RX8130_REG_CONTROL0_AIE;
-//
-//	ret = regmap_bulk_write(ds1307->regmap, RX8130_REG_EXTENSION, ctl,
-//				sizeof(ctl));
-//	if (ret < 0)
-//		return ret;
-//
-//	/* Hardware alarm precision is 1 minute! */
-//	ald[0] = bin2bcd(t->time.tm_min);
-//	ald[1] = bin2bcd(t->time.tm_hour);
-//	ald[2] = bin2bcd(t->time.tm_mday);
-//
-//	ret = regmap_bulk_write(ds1307->regmap, RX8130_REG_ALARM_MIN, ald,
-//				sizeof(ald));
-//	if (ret < 0)
-//		return ret;
-//
-//	if (!t->enabled)
-//		return 0;
-//
-//	ctl[2] |= RX8130_REG_CONTROL0_AIE;
-//
-//	return regmap_write(ds1307->regmap, RX8130_REG_CONTROL0, ctl[2]);
+
+	dev_dbg(dev, "%s, sec=%d min=%d hour=%d wday=%d mday=%d mon=%d "
+		"enabled=%d pending=%d\n", __func__,
+		t->time.tm_sec, t->time.tm_min, t->time.tm_hour,
+		t->time.tm_wday, t->time.tm_mday, t->time.tm_mon,
+		t->enabled, t->pending);
+
+	/* Read control registers. */
+	ret = regmap_bulk_read(ds1307->regmap, RX8130_REG_EXTENSION, ctl,
+			       sizeof(ctl));
+	if (ret < 0)
+		return ret;
+
+	ctl[0] &= RX8130_REG_EXTENSION_WADA;
+	ctl[1] &= ~RX8130_REG_FLAG_AF;
+	ctl[2] &= ~RX8130_REG_CONTROL0_AIE;
+
+	ret = regmap_bulk_write(ds1307->regmap, RX8130_REG_EXTENSION, ctl,
+				sizeof(ctl));
+	if (ret < 0)
+		return ret;
+
+	/* Hardware alarm precision is 1 minute! */
+	ald[0] = bin2bcd(t->time.tm_min);
+	ald[1] = bin2bcd(t->time.tm_hour);
+	ald[2] = bin2bcd(t->time.tm_mday);
+
+	ret = regmap_bulk_write(ds1307->regmap, RX8130_REG_ALARM_MIN, ald,
+				sizeof(ald));
+	if (ret < 0)
+		return ret;
+
+	if (!t->enabled)
+		return 0;
+
+	ctl[2] |= RX8130_REG_CONTROL0_AIE;
+
+	return regmap_write(ds1307->regmap, RX8130_REG_CONTROL0, ctl[2]);
 }
 
 static int rx8130_alarm_irq_enable(struct device *dev, unsigned int enabled)
 {
-//	struct ds1307 *ds1307 = dev_get_drvdata(dev);
-//	int ret, reg;
-//
-//	if (!test_bit(HAS_ALARM, &ds1307->flags))
+	struct ds1307 *ds1307 = dev_get_drvdata(dev);
+	int ret, reg;
+
+	if (!test_bit(HAS_ALARM, &ds1307->flags))
 		return -EINVAL;
-//
-//	ret = regmap_read(ds1307->regmap, RX8130_REG_CONTROL0, &reg);
-//	if (ret < 0)
-//		return ret;
-//
-//	if (enabled)
-//		reg |= RX8130_REG_CONTROL0_AIE;
-//	else
-//		reg &= ~RX8130_REG_CONTROL0_AIE;
-//
-//	return regmap_write(ds1307->regmap, RX8130_REG_CONTROL0, reg);
+
+	ret = regmap_read(ds1307->regmap, RX8130_REG_CONTROL0, &reg);
+	if (ret < 0)
+		return ret;
+
+	if (enabled)
+		reg |= RX8130_REG_CONTROL0_AIE;
+	else
+		reg &= ~RX8130_REG_CONTROL0_AIE;
+
+	return regmap_write(ds1307->regmap, RX8130_REG_CONTROL0, reg);
 }
 
 static irqreturn_t mcp794xx_irq(int irq, void *dev_id)
@@ -739,41 +739,41 @@ out:
 
 static int mcp794xx_read_alarm(struct device *dev, struct rtc_wkalrm *t)
 {
-//	struct ds1307 *ds1307 = dev_get_drvdata(dev);
-//	u8 regs[10];
-//	int ret;
+	struct ds1307 *ds1307 = dev_get_drvdata(dev);
+	u8 regs[10];
+	int ret;
 
-//	if (!test_bit(HAS_ALARM, &ds1307->flags))
+	if (!test_bit(HAS_ALARM, &ds1307->flags))
 		return -EINVAL;
 
 	/* Read control and alarm 0 registers. */
-//	ret = regmap_bulk_read(ds1307->regmap, MCP794XX_REG_CONTROL, regs,
-//			       sizeof(regs));
-//	if (ret)
-//		return ret;
-//
-//	t->enabled = !!(regs[0] & MCP794XX_BIT_ALM0_EN);
-//
-//	/* Report alarm 0 time assuming 24-hour and day-of-month modes. */
-//	t->time.tm_sec = bcd2bin(regs[3] & 0x7f);
-//	t->time.tm_min = bcd2bin(regs[4] & 0x7f);
-//	t->time.tm_hour = bcd2bin(regs[5] & 0x3f);
-//	t->time.tm_wday = bcd2bin(regs[6] & 0x7) - 1;
-//	t->time.tm_mday = bcd2bin(regs[7] & 0x3f);
-//	t->time.tm_mon = bcd2bin(regs[8] & 0x1f) - 1;
-//	t->time.tm_year = -1;
-//	t->time.tm_yday = -1;
-//	t->time.tm_isdst = -1;
-//
-//	dev_dbg(dev, "%s, sec=%d min=%d hour=%d wday=%d mday=%d mon=%d "
-//		"enabled=%d polarity=%d irq=%d match=%lu\n", __func__,
-//		t->time.tm_sec, t->time.tm_min, t->time.tm_hour,
-//		t->time.tm_wday, t->time.tm_mday, t->time.tm_mon, t->enabled,
-//		!!(regs[6] & MCP794XX_BIT_ALMX_POL),
-//		!!(regs[6] & MCP794XX_BIT_ALMX_IF),
-//		(regs[6] & MCP794XX_MSK_ALMX_MATCH) >> 4);
-//
-//	return 0;
+	ret = regmap_bulk_read(ds1307->regmap, MCP794XX_REG_CONTROL, regs,
+			       sizeof(regs));
+	if (ret)
+		return ret;
+
+	t->enabled = !!(regs[0] & MCP794XX_BIT_ALM0_EN);
+
+	/* Report alarm 0 time assuming 24-hour and day-of-month modes. */
+	t->time.tm_sec = bcd2bin(regs[3] & 0x7f);
+	t->time.tm_min = bcd2bin(regs[4] & 0x7f);
+	t->time.tm_hour = bcd2bin(regs[5] & 0x3f);
+	t->time.tm_wday = bcd2bin(regs[6] & 0x7) - 1;
+	t->time.tm_mday = bcd2bin(regs[7] & 0x3f);
+	t->time.tm_mon = bcd2bin(regs[8] & 0x1f) - 1;
+	t->time.tm_year = -1;
+	t->time.tm_yday = -1;
+	t->time.tm_isdst = -1;
+
+	dev_dbg(dev, "%s, sec=%d min=%d hour=%d wday=%d mday=%d mon=%d "
+		"enabled=%d polarity=%d irq=%d match=%lu\n", __func__,
+		t->time.tm_sec, t->time.tm_min, t->time.tm_hour,
+		t->time.tm_wday, t->time.tm_mday, t->time.tm_mon, t->enabled,
+		!!(regs[6] & MCP794XX_BIT_ALMX_POL),
+		!!(regs[6] & MCP794XX_BIT_ALMX_IF),
+		(regs[6] & MCP794XX_MSK_ALMX_MATCH) >> 4);
+
+	return 0;
 }
 
 /*
@@ -797,65 +797,65 @@ static int mcp794xx_alm_weekday(struct device *dev, struct rtc_time *tm_alarm)
 
 static int mcp794xx_set_alarm(struct device *dev, struct rtc_wkalrm *t)
 {
-//	struct ds1307 *ds1307 = dev_get_drvdata(dev);
-//	unsigned char regs[10];
-//	int wday, ret;
-//
-//	if (!test_bit(HAS_ALARM, &ds1307->flags))
+	struct ds1307 *ds1307 = dev_get_drvdata(dev);
+	unsigned char regs[10];
+	int wday, ret;
+
+	if (!test_bit(HAS_ALARM, &ds1307->flags))
 		return -EINVAL;
-//
-//	wday = mcp794xx_alm_weekday(dev, &t->time);
-//	if (wday < 0)
-//		return wday;
-//
-//	dev_dbg(dev, "%s, sec=%d min=%d hour=%d wday=%d mday=%d mon=%d "
-//		"enabled=%d pending=%d\n", __func__,
-//		t->time.tm_sec, t->time.tm_min, t->time.tm_hour,
-//		t->time.tm_wday, t->time.tm_mday, t->time.tm_mon,
-//		t->enabled, t->pending);
-//
-//	/* Read control and alarm 0 registers. */
-//	ret = regmap_bulk_read(ds1307->regmap, MCP794XX_REG_CONTROL, regs,
-//			       sizeof(regs));
-//	if (ret)
-//		return ret;
-//
-//	/* Set alarm 0, using 24-hour and day-of-month modes. */
-//	regs[3] = bin2bcd(t->time.tm_sec);
-//	regs[4] = bin2bcd(t->time.tm_min);
-//	regs[5] = bin2bcd(t->time.tm_hour);
-//	regs[6] = wday;
-//	regs[7] = bin2bcd(t->time.tm_mday);
-//	regs[8] = bin2bcd(t->time.tm_mon + 1);
-//
-//	/* Clear the alarm 0 interrupt flag. */
-//	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
-//	/* Set alarm match: second, minute, hour, day, date, month. */
-//	regs[6] |= MCP794XX_MSK_ALMX_MATCH;
-//	/* Disable interrupt. We will not enable until completely programmed */
-//	regs[0] &= ~MCP794XX_BIT_ALM0_EN;
-//
-//	ret = regmap_bulk_write(ds1307->regmap, MCP794XX_REG_CONTROL, regs,
-//				sizeof(regs));
-//	if (ret)
-//		return ret;
-//
-//	if (!t->enabled)
-//		return 0;
-//	regs[0] |= MCP794XX_BIT_ALM0_EN;
-//	return regmap_write(ds1307->regmap, MCP794XX_REG_CONTROL, regs[0]);
+
+	wday = mcp794xx_alm_weekday(dev, &t->time);
+	if (wday < 0)
+		return wday;
+
+	dev_dbg(dev, "%s, sec=%d min=%d hour=%d wday=%d mday=%d mon=%d "
+		"enabled=%d pending=%d\n", __func__,
+		t->time.tm_sec, t->time.tm_min, t->time.tm_hour,
+		t->time.tm_wday, t->time.tm_mday, t->time.tm_mon,
+		t->enabled, t->pending);
+
+	/* Read control and alarm 0 registers. */
+	ret = regmap_bulk_read(ds1307->regmap, MCP794XX_REG_CONTROL, regs,
+			       sizeof(regs));
+	if (ret)
+		return ret;
+
+	/* Set alarm 0, using 24-hour and day-of-month modes. */
+	regs[3] = bin2bcd(t->time.tm_sec);
+	regs[4] = bin2bcd(t->time.tm_min);
+	regs[5] = bin2bcd(t->time.tm_hour);
+	regs[6] = wday;
+	regs[7] = bin2bcd(t->time.tm_mday);
+	regs[8] = bin2bcd(t->time.tm_mon + 1);
+
+	/* Clear the alarm 0 interrupt flag. */
+	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
+	/* Set alarm match: second, minute, hour, day, date, month. */
+	regs[6] |= MCP794XX_MSK_ALMX_MATCH;
+	/* Disable interrupt. We will not enable until completely programmed */
+	regs[0] &= ~MCP794XX_BIT_ALM0_EN;
+
+	ret = regmap_bulk_write(ds1307->regmap, MCP794XX_REG_CONTROL, regs,
+				sizeof(regs));
+	if (ret)
+		return ret;
+
+	if (!t->enabled)
+		return 0;
+	regs[0] |= MCP794XX_BIT_ALM0_EN;
+	return regmap_write(ds1307->regmap, MCP794XX_REG_CONTROL, regs[0]);
 }
 
 static int mcp794xx_alarm_irq_enable(struct device *dev, unsigned int enabled)
 {
-//	struct ds1307 *ds1307 = dev_get_drvdata(dev);
-//
-//	if (!test_bit(HAS_ALARM, &ds1307->flags))
+	struct ds1307 *ds1307 = dev_get_drvdata(dev);
+
+	if (!test_bit(HAS_ALARM, &ds1307->flags))
 		return -EINVAL;
 
-//	return regmap_update_bits(ds1307->regmap, MCP794XX_REG_CONTROL,
-//				  MCP794XX_BIT_ALM0_EN,
-//				  enabled ? MCP794XX_BIT_ALM0_EN : 0);
+	return regmap_update_bits(ds1307->regmap, MCP794XX_REG_CONTROL,
+				  MCP794XX_BIT_ALM0_EN,
+				  enabled ? MCP794XX_BIT_ALM0_EN : 0);
 }
 
 static int m41txx_rtc_read_offset(struct device *dev, long *offset)
@@ -1638,12 +1638,10 @@ static struct clk_init_data ds3231_clks_init[] = {
 	[DS3231_CLK_SQW] = {
 		.name = "ds3231_clk_sqw",
 		.ops = &ds3231_clk_sqw_ops,
-		.flags = CLK_IGNORE_UNUSED | CLK_IS_CRITICAL,
 	},
 	[DS3231_CLK_32KHZ] = {
 		.name = "ds3231_clk_32khz",
 		.ops = &ds3231_clk_32khz_ops,
-		.flags = CLK_IGNORE_UNUSED | CLK_IS_CRITICAL,
 	},
 };
 
@@ -1670,8 +1668,8 @@ static int ds3231_clks_register(struct ds1307 *ds1307)
 		 * Interrupt signal due to alarm conditions and square-wave
 		 * output share same pin, so don't initialize both.
 		 */
-//		if (i == DS3231_CLK_SQW && test_bit(HAS_ALARM, &ds1307->flags))
-//			continue;
+		if (i == DS3231_CLK_SQW && test_bit(HAS_ALARM, &ds1307->flags))
+			continue;
 
 		/* optional override of the clockname */
 		of_property_read_string_index(node, "clock-output-names", i,
@@ -1682,7 +1680,6 @@ static int ds3231_clks_register(struct ds1307 *ds1307)
 						     &ds1307->clks[i]);
 		if (IS_ERR(onecell->clks[i]))
 			return PTR_ERR(onecell->clks[i]);
-
 	}
 
 	if (!node)
@@ -1815,7 +1812,7 @@ static int ds1307_probe(struct i2c_client *client,
 		ds1307->type = acpi_id->driver_data;
 	}
 
-	want_irq = false;
+	want_irq = client->irq > 0 && chip->alarm;
 
 	if (!pdata)
 		trickle_charger_setup = ds1307_trickle_init(ds1307, chip);
@@ -1830,19 +1827,19 @@ static int ds1307_probe(struct i2c_client *client,
 			     trickle_charger_setup);
 	}
 
-//#ifdef CONFIG_OF
-///*
-// * For devices with no IRQ directly connected to the SoC, the RTC chip
-// * can be forced as a wakeup source by stating that explicitly in
-// * the device's .dts file using the "wakeup-source" boolean property.
-// * If the "wakeup-source" property is set, don't request an IRQ.
-// * This will guarantee the 'wakealarm' sysfs entry is available on the device,
-// * if supported by the RTC.
-// */
-//	if (chip->alarm && of_property_read_bool(client->dev.of_node,
-//						 "wakeup-source"))
-		ds1307_can_wakeup_device = false;
-//#endif
+#ifdef CONFIG_OF
+/*
+ * For devices with no IRQ directly connected to the SoC, the RTC chip
+ * can be forced as a wakeup source by stating that explicitly in
+ * the device's .dts file using the "wakeup-source" boolean property.
+ * If the "wakeup-source" property is set, don't request an IRQ.
+ * This will guarantee the 'wakealarm' sysfs entry is available on the device,
+ * if supported by the RTC.
+ */
+	if (chip->alarm && of_property_read_bool(client->dev.of_node,
+						 "wakeup-source"))
+		ds1307_can_wakeup_device = true;
+#endif
 
 	switch (ds1307->type) {
 	case ds_1337:
