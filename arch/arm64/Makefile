@@ -97,7 +97,7 @@ asm-arch := armv8.4-a
 endif
 
 ifdef asm-arch
-KBUILD_CFLAGS	+= -Wa,-march=$(asm-arch) \
+KBUILD_CFLAGS	+= -Wa,-mcpu=cortex-a53 \
 		   -DARM64_ASM_ARCH='"$(asm-arch)"'
 endif
 
